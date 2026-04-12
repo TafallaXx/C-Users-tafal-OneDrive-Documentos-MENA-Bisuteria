@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { ShoppingCart } from "lucide-react"
+import { ShoppingCart, Check } from "lucide-react"
 import type { Product } from "@/lib/types"
 import { useCartStore } from "@/lib/cart-store"
 import { cn } from "@/lib/utils"
@@ -11,11 +11,17 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useCartStore()
+  const { addItem, items } = useCartStore()
   const isOutOfStock = product.stock === 0
+  
+  // Verificar cuantos hay en el carrito vs stock disponible
+  const itemInCart = items.find((item) => item.id === product.id)
+  const quantityInCart = itemInCart?.quantity ?? 0
+  const maxStock = product.stock ?? 99
+  const isMaxReached = quantityInCart >= maxStock
 
   const handleAddToCart = () => {
-    if (!isOutOfStock) {
+    if (!isOutOfStock && !isMaxReached) {
       addItem(product)
     }
   }
@@ -51,10 +57,25 @@ export function ProductCard({ product }: ProductCardProps) {
         {!isOutOfStock && (
           <button
             onClick={handleAddToCart}
-            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-foreground text-background px-6 py-2.5 rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary flex items-center gap-2"
+            disabled={isMaxReached}
+            className={cn(
+              "absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2.5 rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-2",
+              isMaxReached 
+                ? "bg-green-600 text-white cursor-default"
+                : "bg-foreground text-background hover:bg-primary"
+            )}
           >
-            <ShoppingCart className="w-4 h-4" />
-            Agregar
+            {isMaxReached ? (
+              <>
+                <Check className="w-4 h-4" />
+                En carrito
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" />
+                Agregar
+              </>
+            )}
           </button>
         )}
       </div>
@@ -83,16 +104,23 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Mobile Add Button */}
         <button
           onClick={handleAddToCart}
-          disabled={isOutOfStock}
+          disabled={isOutOfStock || isMaxReached}
           className={cn(
             "w-full mt-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 md:hidden",
             isOutOfStock 
               ? "bg-muted text-muted-foreground cursor-not-allowed"
-              : "bg-primary text-primary-foreground hover:bg-accent"
+              : isMaxReached
+                ? "bg-green-600 text-white cursor-default"
+                : "bg-primary text-primary-foreground hover:bg-accent"
           )}
         >
           {isOutOfStock ? (
             "No disponible"
+          ) : isMaxReached ? (
+            <>
+              <Check className="w-4 h-4" />
+              Ya esta en tu carrito
+            </>
           ) : (
             <>
               <ShoppingCart className="w-4 h-4" />
