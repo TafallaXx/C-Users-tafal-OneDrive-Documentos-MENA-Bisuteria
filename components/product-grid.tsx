@@ -25,7 +25,7 @@ export function ProductGrid({ products }: ProductGridProps) {
   const categories = useMemo(() => getCategories(products), [products])
 
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+    const filtered = products.filter((product) => {
       const matchesSearch = 
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -34,6 +34,16 @@ export function ProductGrid({ products }: ProductGridProps) {
         selectedCategory === "Todos" || product.category === selectedCategory
 
       return matchesSearch && matchesCategory
+    })
+    
+    // Ordenar: productos con stock primero, agotados al final
+    return filtered.sort((a, b) => {
+      const stockA = a.stock ?? 0
+      const stockB = b.stock ?? 0
+      
+      if (stockA > 0 && stockB === 0) return -1 // A tiene stock, B no -> A primero
+      if (stockA === 0 && stockB > 0) return 1  // A no tiene stock, B si -> B primero
+      return 0 // Ambos tienen o no tienen stock -> mantener orden
     })
   }, [products, searchTerm, selectedCategory])
 
