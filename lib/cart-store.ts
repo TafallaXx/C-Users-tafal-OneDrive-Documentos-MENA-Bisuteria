@@ -23,12 +23,18 @@ export const useCartStore = create<CartStore>((set, get) => ({
   addItem: (product: Product) => {
     set((state) => {
       const existingItem = state.items.find((item) => item.id === product.id)
+      const maxStock = product.stock ?? 99
       
       if (existingItem) {
+        // No permitir agregar mas de lo que hay en stock
+        if (existingItem.quantity >= maxStock) {
+          return { isOpen: true } // No cambia nada, solo abre el carrito
+        }
+        
         return {
           items: state.items.map((item) =>
             item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? { ...item, quantity: Math.min(item.quantity + 1, maxStock) }
               : item
           ),
           isOpen: true
