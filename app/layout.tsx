@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Playfair_Display, Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script' // 1. Importa Script aquí
 import './globals.css'
 
 const playfair = Playfair_Display({ 
@@ -47,6 +48,14 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${playfair.variable} ${inter.variable} font-sans antialiased`}>
+        {/* 2. Añade el script de AdSense justo antes de {children} */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1268315421410022"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
